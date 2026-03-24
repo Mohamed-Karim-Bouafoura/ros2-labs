@@ -1,0 +1,2291 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Learn about Odometry, which informs us of a robot's position and orientation in an environment. Apply both open and closed-loop velocity control methods to a Waffle.">
+      
+      
+      
+        <link rel="canonical" href="https://mohamed-karim-bouafoura.github.io/ros2-labs/course/part2/">
+      
+      
+        <link rel="prev" href="../part1/">
+      
+      
+        <link rel="next" href="../part3/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/Ros_logo.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Lab 2: Odometry & Navigation - ROS 2 Labs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,400,400i,700,700i%7CSource+Code+Pro:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Source Sans Pro";--md-code-font:"Source Code Pro"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#introduction" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="ROS 2 Labs" class="md-header__button md-logo" aria-label="ROS 2 Labs" data-md-component="logo">
+      
+  <img src="../../assets/Ros_logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ROS 2 Labs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Lab 2: Odometry & Navigation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mohamed-karim-bouafoura/ros2-labs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mohamed-karim-bouafoura.github.io/ros2-labs/
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="ROS 2 Labs" class="md-nav__button md-logo" aria-label="ROS 2 Labs" data-md-component="logo">
+      
+  <img src="../../assets/Ros_logo.svg" alt="logo">
+
+    </a>
+    ROS 2 Labs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mohamed-karim-bouafoura/ros2-labs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mohamed-karim-bouafoura.github.io/ros2-labs/
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Course
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Course
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../part1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lab 1: Getting Started with ROS 2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lab 2: Odometry & Navigation
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lab 2: Odometry & Navigation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Introduction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Started
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#odometry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Odometry
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Odometry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#odometry-in-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Odometry In Action
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Odometry In Action">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ex1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exercise 1: Exploring Odometry Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#odometry-explained" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Odometry Explained
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Odometry Explained">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-are-quaternions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What are Quaternions?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#which-pose-values-apply-to-our-waffles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which Pose Values Apply to our Waffles?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#odometry-data-as-a-feedback-signal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Odometry Data as a Feedback Signal
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Odometry Data as a Feedback Signal">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ex2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exercise 2: Creating a Python Node to Process Odometry Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#velocity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Navigation: Open-loop Velocity Control
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Basic Navigation: Open-loop Velocity Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#velocity-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Velocity Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-degrees-of-freedom-of-our-waffles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Degrees of Freedom of our Waffles
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Degrees of Freedom of our Waffles">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ex3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exercise 3: Controlling Velocity with the ROS 2 CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ex4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exercise 4: Creating a Python Node to Make a Robot Move in a circle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ex5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exercise 5: Implementing a Shutdown Procedure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#odometry-based-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Odometry-based Navigation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Odometry-based Navigation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ex6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exercise 6: Making our Robot Follow a Square Motion Path
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#submission-on-google-classroom" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Submission on Google Classroom
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Submission on Google Classroom">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#final-challenge-target_reachpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Final Challenge: target_reach.py
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#preparation-for-upload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preparation for Upload
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#submission-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Submission Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../part3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lab 3: Beyond the Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../part4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lab 4: Services
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../part5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lab 5: Actions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../part6/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lab 6: Cameras, Machine Vision & OpenCV
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_7" id="__nav_2_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extras
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Extras
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../extras/launch-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Launch Files (Advanced)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Introduction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Started
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#odometry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Odometry
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Odometry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#odometry-in-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Odometry In Action
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Odometry In Action">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ex1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exercise 1: Exploring Odometry Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#odometry-explained" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Odometry Explained
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Odometry Explained">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-are-quaternions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What are Quaternions?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#which-pose-values-apply-to-our-waffles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which Pose Values Apply to our Waffles?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#odometry-data-as-a-feedback-signal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Odometry Data as a Feedback Signal
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Odometry Data as a Feedback Signal">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ex2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exercise 2: Creating a Python Node to Process Odometry Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#velocity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Navigation: Open-loop Velocity Control
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Basic Navigation: Open-loop Velocity Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#velocity-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Velocity Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-degrees-of-freedom-of-our-waffles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Degrees of Freedom of our Waffles
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Degrees of Freedom of our Waffles">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ex3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exercise 3: Controlling Velocity with the ROS 2 CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ex4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exercise 4: Creating a Python Node to Make a Robot Move in a circle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ex5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exercise 5: Implementing a Shutdown Procedure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#odometry-based-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Odometry-based Navigation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Odometry-based Navigation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ex6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exercise 6: Making our Robot Follow a Square Motion Path
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#submission-on-google-classroom" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Submission on Google Classroom
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Submission on Google Classroom">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#final-challenge-target_reachpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Final Challenge: target_reach.py
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#preparation-for-upload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preparation for Upload
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#submission-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Submission Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>Lab 2: Odometry & Navigation</h1>
+
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
+<p>In Lab 2 we'll learn how to control a ROS robot's <strong>position</strong> and <strong>velocity</strong> from both the command line and through ROS Nodes. We'll also learn how to interpret the data that allows us to monitor a robot's position in its physical environment (odometry).  The things covered here form the basis of robot navigation in ROS, from simple open-loop methods to more advanced closed-loop control (both of which we will explore).</p>
+<h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
+<p><strong>Step 1: Launch your ROS 2 Environment</strong></p>
+<p>You should now have access to ROS 2 via a Linux terminal instance. We'll refer to this terminal instance as <strong>TERMINAL 1</strong>.</p>
+<p><strong>Step 2: Launch VS Code</strong> </p>
+<p>It's also worth launching VS Code now, so that it's ready to go for when you need it later on. </p>
+<p><strong>Step 3: Make Sure The Course Repo is Up-To-Date</strong></p>
+<p><a name="course-repo"></a></p>
+<p>In Lab 1 you should have <a href="../part1/#course-repo">downloaded and installed The Course Repo</a> into your ROS environment. If you haven't done this yet then go back and do it now. If you <em>have</em> already done it, then it's worth just making sure it's all up-to-date, so run the following command in <strong>TERMINAL 1</strong> now to do so:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>~/ros2_ws/src/ros/<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>git<span class="w"> </span>pull
+</code></pre></div>
+<p>Then build with Colcon: </p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>~/ros2_ws/<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>colcon<span class="w"> </span>build<span class="w"> </span>--packages-up-to<span class="w"> </span>ros
+</code></pre></div>
+<p>And finally, re-source your environment:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">source</span><span class="w"> </span>~/.bashrc
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you have any other terminal instances open, then you'll need run <code>source ~/.bashrc</code> in these too, in order for any changes made by the Colcon build process to propagate through to these as well.</p>
+</div>
+<p><strong>Step 4: Launch a Waffle Simulation</strong></p>
+<p>In <strong>TERMINAL 1</strong> enter the following command to launch a simulation of a TurtleBot3 Waffle in an empty world:  </p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ros2<span class="w"> </span>launch<span class="w"> </span>turtlebot3_gazebo<span class="w"> </span>empty_world.launch.py
+</code></pre></div>
+<p>A Gazebo simulation window should open and within this you should see a TurtleBot3 Waffle in empty space.</p>
+<h2 id="odometry">Odometry<a class="headerlink" href="#odometry" title="Permanent link">&para;</a></h2>
+<p>Odometry is a process of monitoring a robot's <em>position</em> and <em>orientation</em> in an environment, which is essential for robot navigation. The position and orientation of a robot is referred to as its <em>pose</em>. A robot's pose is 3-dimensional, and is therefore defined in terms of three <em>"Principal Axes"</em>: <code>X</code>, <code>Y</code> and <code>Z</code>. In the context of our TurtleBot3 Waffles, these axes and the motion about them are defined as follows:</p>
+<p><a name="principal-axes"></a></p>
+<figure>
+<p><img alt="" src="../../images/waffle/principal_axes.svg" width="800" /></p>
+</figure>
+<p>Not all the above positions and orientations apply to our Waffles, and we'll explore this further below.</p>
+<h3 id="odometry-in-action">Odometry In Action<a class="headerlink" href="#odometry-in-action" title="Permanent link">&para;</a></h3>
+<p>Recall from Part 1 the command that we can use to list <em>all</em> the topics that are available on our robot:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ros2<span class="w"> </span>topic<span class="w"> </span>list
+</code></pre></div>
+<p>You should see <code>/odom</code> in this list, which is where our robot's Odometry data is published. Run the <code>ros2 topic</code> command again, but this time with an additional <code>-t</code> option:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>ros2<span class="w"> </span>topic<span class="w"> </span>list<span class="w"> </span>-t
+</code></pre></div>
+<p>Look for <code>/odom</code> again in the list, and you will <em>now</em> notice that the interface definition is provided in square brackets alongside the topic name:</p>
+<div class="no-copy highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>/odom [nav_msgs/msg/Odometry]
+</code></pre></div>
+<p>Having established the data structure, let's explore the actual data now, using <code>rqt</code>.</p>
+<h4 id="ex1">Exercise 1: Exploring Odometry Data<a class="headerlink" href="#ex1" title="Permanent link">&para;</a></h4>
+<ol>
+<li>
+<p>In a new terminal instance (<strong>TERMINAL 2</strong>) use the following command to launch the <em>RQT Topic Monitor</em>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>ros2<span class="w"> </span>run<span class="w"> </span>rqt_topic<span class="w"> </span>rqt_topic<span class="w"> </span>
+</code></pre></div>
+<p><em>Topic Monitor</em> should launch with a list of active topics matching the topic list from the <code>ros2 topic list</code> command that you ran earlier.</p>
+</li>
+<li>
+<p>Check the box next to <code>/odom</code> and click the arrow next to it to expand the topic and reveal four <em>base fields</em>.</p>
+</li>
+<li>
+<p>Expand the <code>pose</code> field, and then the further <code>pose</code> field within that. This should reveal two further fields: <strong><code>position</code></strong> and <strong><code>orientation</code></strong>. </p>
+<p>Expand both of these to reveal the data being published to the <em>three</em> position (<code>x</code>, <code>y</code> and <code>z</code>) and <em>four</em> orientation (<code>x</code>, <code>y</code>, <code>z</code> and <code>w</code>) values.</p>
+<p><figure markdown>
+  <img alt="" src="../../images/rqt/topic_monitor.png" width="600" />
+</figure></p>
+</li>
+<li>
+<p>Next, launch a new terminal instance, we'll call this one <strong>TERMINAL 3</strong>. Arrange this next to the <code>rqt</code> window, so that you can see them both side-by-side.</p>
+</li>
+<li>
+<p>In <strong>TERMINAL 3</strong> launch the <code>teleop_keyboard</code> node <a href="../part1/#teleop">as you did in Part 1</a>: <a name="teleop"></a></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>ros2<span class="w"> </span>run<span class="w"> </span>turtlebot3_teleop<span class="w"> </span>teleop_keyboard
+</code></pre></div>
+</li>
+<li>
+<p>Enter <span class="keys"><kbd class="key-a">A</kbd></span> a couple of times to make the robot rotate on the spot. Observe how the odometry data changes in Topic Monitor.</p>
+</li>
+<li>
+<p>Now press the <span class="keys"><kbd class="key-s">S</kbd></span> key to halt the robot, then press <span class="keys"><kbd class="key-w">W</kbd></span> a couple of times to make the robot drive forwards.</p>
+</li>
+<li>
+<p>Now press <span class="keys"><kbd class="key-d">D</kbd></span> a couple of times and your robot should start to move in a circle.</p>
+</li>
+<li>
+<p>Press <span class="keys"><kbd class="key-s">S</kbd></span> in <strong>TERMINAL 3</strong> to stop the robot (but leave the <code>teleop_keyboard</code> node running).  Then, press <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-c">C</kbd></span> in <strong>TERMINAL 2</strong> to close down <code>rqt</code>. </p>
+</li>
+<li>
+<p>Let's look at the Odometry data differently now. With the robot stationary, use <code>ros2 run</code> (in <strong>TERMINAL 2</strong>) to run a Python node from the <code>examples</code> package: </p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>ros2<span class="w"> </span>run<span class="w"> </span>examples<span class="w"> </span>robot_pose.py
+</code></pre></div>
+</li>
+<li>
+<p>Now (using the <code>teleop_keyboard</code> node in <strong>TERMINAL 3</strong>) drive your robot around again, keeping an eye on the outputs that are being printed by the <code>robot_pose.py</code> node in <strong>TERMINAL 2</strong> as you do so.</p>
+<p>The output of the <code>robot_pose.py</code> node shows you how the robot's <em>position</em> and <em>orientation</em> (i.e. <em>"pose"</em>) are changing in real-time as you move the robot around. The <code>"initial"</code> column tells us the robot's pose when the node was first launched, and the <code>"current"</code> column show us what its pose currently is. The <code>"delta"</code> column then shows the difference between the two.</p>
+</li>
+<li>
+<p>Press <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-c">C</kbd></span> in <strong>TERMINAL 2</strong> and <strong>TERMINAL 3</strong>, to stop the <code>robot_pose.py</code> and <code>teleop_keyboard</code> nodes. </p>
+</li>
+</ol>
+<h3 id="odometry-explained">Odometry Explained<a class="headerlink" href="#odometry-explained" title="Permanent link">&para;</a></h3>
+<p>Hopefully you're starting to understand what Odometry is now, but let's dig a little deeper using some key ROS command line tools again. IN <strong>TERMINAL 2</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>ros2<span class="w"> </span>topic<span class="w"> </span>info<span class="w"> </span>/odom
+</code></pre></div>
+<p>This provides information about the interface used by this topic:</p>
+<div class="no-copy highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Type: nav_msgs/msg/Odometry
+</code></pre></div>
+<p>We can find out more about this interface using the <code>ros2 interface show</code> command:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>ros2<span class="w"> </span>interface<span class="w"> </span>show<span class="w"> </span>nav_msgs/msg/Odometry
+</code></pre></div>
+<p>Look down the far left-hand side to identify the four <em>base fields</em> of the interface (the fields that are not indented):</p>
+<p><a name="odom-base-fields"></a></p>
+<p><center></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">#</th>
+<th style="text-align: center;">Field <em>Name</em></th>
+<th style="text-align: center;">Field <em>Type</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;"><code>header</code></td>
+<td style="text-align: center;"><code>std_msgs/Header</code></td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;"><code>child_frame_id</code></td>
+<td style="text-align: center;"><code>string</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>3</strong></td>
+<td style="text-align: center;"><strong><code>pose</code></strong></td>
+<td style="text-align: center;"><strong><code>geometry_msgs/PoseWithCovariance</code></strong></td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;"><code>twist</code></td>
+<td style="text-align: center;"><code>geometry_msgs/TwistWithCovariance</code></td>
+</tr>
+</tbody>
+</table>
+<p></center></p>
+<p>We saw all these in <code>rqt</code> earlier. As before, its item 3 that's of most interest to us...</p>
+<h4 id="pose">Pose<a class="headerlink" href="#pose" title="Permanent link">&para;</a></h4>
+<div class="no-copy highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a># Estimated pose that is typically relative to a fixed world frame.
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>geometry_msgs/PoseWithCovariance pose
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>        Pose pose
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>                Point position
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>                        float64 x
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>                        float64 y
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>                        float64 z
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>                Quaternion orientation
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>                        float64 x
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>                        float64 y
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>                        float64 z
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>                        float64 w
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>        float64[36] covariance
+</code></pre></div>
+<p>Within the <code>pose</code> base field we have two subfields: <code>pose</code> and <code>covariance</code>:</p>
+<p><center></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">#</th>
+<th style="text-align: center;">Field <em>Name</em></th>
+<th style="text-align: center;">Field <em>Type</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>1</strong></td>
+<td style="text-align: center;"><strong><code>pose</code></strong></td>
+<td style="text-align: center;"><strong><code>Pose</code></strong></td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;"><code>covariance</code></td>
+<td style="text-align: center;"><code>float64[36]</code></td>
+</tr>
+</tbody>
+</table>
+<p></center></p>
+<p>It's the <code>pose</code> subfield that we're most interested in here, which contains two <em>further</em> subfields called <code>position</code> and <code>orientation</code>: </p>
+<p><center></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">#</th>
+<th style="text-align: center;">Field <em>Name</em></th>
+<th style="text-align: center;">Field <em>Type</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;"><code>position</code></td>
+<td style="text-align: center;"><code>Point</code></td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;"><code>orientation</code></td>
+<td style="text-align: center;"><code>Quaternion</code></td>
+</tr>
+</tbody>
+</table>
+<p></center></p>
+<ol>
+<li>
+<p><code>position</code></p>
+<p>Tells us where our robot is located in 3-dimensional space. This is expressed in units of <strong>meters</strong>.</p>
+</li>
+<li>
+<p><code>orientation</code></p>
+<p>Tells us which way our robot is pointing in its environment. This is expressed in units of <strong>Quaternions</strong>, which is a mathematically convenient way to store data related to a robot's orientation (it's a bit hard for us humans to understand and visualise this though, so we'll talk about how to convert it to a different format later).</p>
+</li>
+</ol>
+<p>Pose is defined relative to an arbitrary reference point, typically where the robot was when it was turned on, or the origin of a simulated world. On our real TurtleBot3 Waffle robots, it is determined from:</p>
+<ul>
+<li>Data from the Inertial Measurement Unit (IMU) on the OpenCR board</li>
+<li>Data from both the left and right wheel encoders</li>
+<li>A <em>kinematic model</em> of the robot</li>
+</ul>
+<p>All the above information can then be used to calculate (and keep track of) the distance travelled by the robot from its pre-defined reference point using a process called <em>"dead-reckoning."</em></p>
+<h4 id="what-are-quaternions">What are Quaternions?<a class="headerlink" href="#what-are-quaternions" title="Permanent link">&para;</a></h4>
+<p>Quaternions represent the orientation of something in 3 dimensional space<sup id="fnref:quaternions"><a class="footnote-ref" href="#fn:quaternions">1</a></sup>, as we can observe from the structure of the <code>nav_msgs/msg/Odometry</code> ROS interface, there are <strong>four fields</strong> associated with this:</p>
+<div class="no-copy highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>Quaternion orientation
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>        float64 x
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>        float64 y
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>        float64 z
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>        float64 w
+</code></pre></div>
+<p>For us, it's easier to think about the orientation of our robot in a <em>"Euler Angle"</em> representation, which tell us the degree of rotation about the <em>three principal axes</em> (<a href="#principal-axes">as discussed above</a>):</p>
+<ul>
+<li><span class="arithmatex">\(\theta_{x}\)</span>: The angular position about the <strong>X</strong>-axis, aka <strong>"Roll"</strong></li>
+<li><span class="arithmatex">\(\theta_{y}\)</span>: The angular position about the <strong>Y</strong>-axis, aka <strong>"Pitch"</strong></li>
+<li><span class="arithmatex">\(\theta_{z}\)</span>: The angular position about the <strong>Z</strong>-axis, aka <strong>"Yaw"</strong></li>
+</ul>
+<p>Fortunately, the maths involved in converting between these two orientation formats is fairly straight forward. The angular position about the Z-axis (aka "Yaw"), for example, is calculated as follows: </p>
+<div class="arithmatex">\[
+\theta_{z} = \operatorname{atan2}\left( 2(wz + xy), 1 - 2(y^2 + z^2) \right)
+\]</div>
+<p>Where <span class="arithmatex">\(\theta_{z}\)</span> is the yaw angle (in radians), and <span class="arithmatex">\(w\)</span>, <span class="arithmatex">\(x\)</span>, <span class="arithmatex">\(y\)</span> and <span class="arithmatex">\(z\)</span> are the quaternion components of a robot's orientation <span class="arithmatex">\(w\)</span> being the scalar (real) part and <span class="arithmatex">\(x\)</span>, <span class="arithmatex">\(y\)</span> and <span class="arithmatex">\(z\)</span> being the vector parts.</p>
+<h3 id="which-pose-values-apply-to-our-waffles">Which Pose Values Apply to our Waffles?<a class="headerlink" href="#which-pose-values-apply-to-our-waffles" title="Permanent link">&para;</a></h3>
+<p>Referring back to the three <em>principal axes</em> from earlier: </p>
+<figure>
+<p><img alt="" src="../../images/waffle/principal_axes.svg" width="500" /></p>
+</figure>
+<p>You can also see here that our TurtleBot3 has two motors that allow it to move. As a result of this, it can only move in a 2D plane and so its pose can be fully represented by just 3 odometry terms in total: </p>
+<ul>
+<li><span class="arithmatex">\(x\)</span> &amp; <span class="arithmatex">\(y\)</span>: the 2D coordinates of the robot in the <strong>X</strong>-<strong>Y</strong> plane</li>
+<li><span class="arithmatex">\(\theta_{z}\)</span>: the angle of the robot about the <strong>Z</strong>-axis (<em>yaw</em>)</li>
+</ul>
+<p>(unfortunately, it can't fly!)</p>
+<h3 id="odometry-data-as-a-feedback-signal">Odometry Data as a Feedback Signal<a class="headerlink" href="#odometry-data-as-a-feedback-signal" title="Permanent link">&para;</a></h3>
+<p>Odometry data can be really useful for robot navigation, allowing us to keep track of where a robot is, how it's moving and how to get back to where we started. We therefore need to know how to use this data effectively within our Python nodes, and we'll explore this now.</p>
+<h4 id="ex2">Exercise 2: Creating a Python Node to Process Odometry Data<a class="headerlink" href="#ex2" title="Permanent link">&para;</a></h4>
+<p>In Lab 1 we learnt how to create a package and build simple Python nodes to publish and subscribe to messages on a topic. In this exercise we'll build a new subscriber node, much like we did previously, but this one will subscribe to the <code>/odom</code> topic that we've been talking about above. We'll also create a new package called <code>part2_navigation</code> for this node to live in!</p>
+<ol>
+<li>
+<p>First, head to the <code>src</code> directory of your ROS 2 workspace in <strong>TERMINAL 2</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nb">cd</span><span class="w"> </span>~/ros2_ws/src/
+</code></pre></div>
+</li>
+<li>
+<p>Clone the ROS 2 Package Template:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/tom-howard/ros2_pkg_template.git
+</code></pre></div>
+</li>
+<li>
+<p>Run the <code>init_pkg.sh</code> script within this to initalise that package with the name "part2_navigation":</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>./ros2_pkg_template/init_pkg.sh<span class="w"> </span>part2_navigation
+</code></pre></div>
+</li>
+<li>
+<p>Then navigate into the new package using <code>cd</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nb">cd</span><span class="w"> </span>./part2_navigation/
+</code></pre></div>
+</li>
+<li>
+<p>The subscriber that we will build here will have a similar structure to the subscriber that we built in Part 1. As a starting point, copy across the <code>subscriber.py</code> file from your <code>part1_pubsub</code> package using the <code>cp</code> command:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>cp<span class="w"> </span>../part1_pubsub/scripts/subscriber.py<span class="w"> </span>./scripts/odom_subscriber.py
+</code></pre></div>
+</li>
+<li>
+<p>Next, head to the following page for step-by-step instructions on how to build the odometry subscriber:</p>
+<p><center><a class="md-button" href="odom_subscriber/" target="_blank"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.11.89 2 2 2h12c1.11 0 2-.89 2-2V8zm4 18H6V4h7v5h5zm-8.46-4.35 2.09 2.09L10.35 19 7 15.65l3.35-3.35 1.28 1.26zm7.46 0L13.65 19l-1.27-1.26 2.09-2.09-2.09-2.09 1.27-1.26z"/></svg></span> Building the <code>odom_subscriber.py</code> node</a></center> </p>
+</li>
+<li>
+<p>Now, declare the <code>odom_subscriber.py</code> node as an executable in the <code>CMakeLists.txt</code>:</p>
+<div class="highlight"><span class="filename">CMakeLists.txt</span><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a># Install Python executables
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>install(PROGRAMS
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>  scripts/basic_velocity_control.py
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>  scripts/stop_me.py
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>  scripts/odom_subscriber.py
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>  DESTINATION lib/${PROJECT_NAME}
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a>)
+</code></pre></div>
+</li>
+<li>
+<p>Head back to the terminal and use Colcon to build the package (including the new <code>odom_subscriber.py</code> node). This is a <strong>three-step process</strong>, that you must always follow:</p>
+<ol>
+<li>
+<p>Navigate to the <strong>root</strong> of the ROS 2 workspace:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="nb">cd</span><span class="w"> </span>~/ros2_ws/
+</code></pre></div>
+</li>
+<li>
+<p>Build your package using <code>colcon</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>colcon<span class="w"> </span>build<span class="w"> </span>--packages-select<span class="w"> </span>part2_navigation<span class="w"> </span>--symlink-install
+</code></pre></div>
+</li>
+<li>
+<p>And finally, re-source the <code>.bashrc</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nb">source</span><span class="w"> </span>~/.bashrc
+</code></pre></div>
+</li>
+</ol>
+</li>
+<li>
+<p>Now we're ready to run this! Do so using <code>ros2 run</code> and see what it does:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>ros2<span class="w"> </span>run<span class="w"> </span>part2_navigation<span class="w"> </span>odom_subscriber.py
+</code></pre></div>
+</li>
+<li>
+<p>Having followed all the steps, the output from your node should be similar to that shown below:</p>
+<p><figure markdown>
+  <img alt="" src="odom_subscriber.gif" width="700px" />
+</figure></p>
+</li>
+<li>
+<p>Observe how the output (the formatted odometry data) changes while you move the robot around using the <code>teleop_keyboard</code> node in <strong>TERMINAL 3</strong>.</p>
+</li>
+<li>Stop your <code>odom_subscriber.py</code> node in <strong>TERMINAL 2</strong> and the <code>teleop_keyboard</code> node in <strong>TERMINAL 3</strong> by entering <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-c">C</kbd></span> in each of the terminals.</li>
+</ol>
+<h2 id="velocity">Basic Navigation: Open-loop Velocity Control<a class="headerlink" href="#velocity" title="Permanent link">&para;</a></h2>
+<p>In order to change our robot's pose, we need to apply velocity to make it move. We learnt about this in Part 1, but let's look at it all in a bit more detail now.</p>
+<p>We know that we can use the <code>/cmd_vel</code> topic to publish velocity commands to our robot. Let's remind ourselves how these velocity commands must be structured:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>ros2<span class="w"> </span>topic<span class="w"> </span>info<span class="w"> </span>/cmd_vel
+</code></pre></div>
+<p>This tells us that the data that is transmitted on the <code>/cmd_vel</code> topic is of the <code>geometry_msgs/msg/TwistStamped</code> interface type.  </p>
+<p>We also learnt how to find out more about this particular interface (using the <code>ros2 interface show</code> command): </p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>ros2<span class="w"> </span>interface<span class="w"> </span>show<span class="w"> </span>geometry_msgs/msg/TwistStamped
+</code></pre></div>
+<p><a name="twist-stamped-struct"></a></p>
+<div class="no-copy highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>std_msgs/Header header
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>        builtin_interfaces/Time stamp
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>                int32 sec
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>                uint32 nanosec
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a>        string frame_id
+<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>Twist twist
+<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a>        Vector3  linear
+<a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a>                float64 x
+<a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a>                float64 y
+<a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a>                float64 z
+<a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a>        Vector3  angular
+<a id="__codelineno-27-12" name="__codelineno-27-12" href="#__codelineno-27-12"></a>                float64 x
+<a id="__codelineno-27-13" name="__codelineno-27-13" href="#__codelineno-27-13"></a>                float64 y
+<a id="__codelineno-27-14" name="__codelineno-27-14" href="#__codelineno-27-14"></a>                float64 z
+</code></pre></div>
+<p>There are two base fields in this data structure:</p>
+<p><center></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">#</th>
+<th style="text-align: center;">Field Name</th>
+<th style="text-align: center;">Data Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;"><code>header</code></td>
+<td style="text-align: center;"><code>std_msgs/Header</code></td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;"><code>twist</code></td>
+<td style="text-align: center;"><code>Twist</code></td>
+</tr>
+</tbody>
+</table>
+<p></center></p>
+<p>Each of these base fields are comprised of further subfields. It's the <code>twist</code> field that's of most interest to us, and this comprises two further subfields:</p>
+<p><center></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">#</th>
+<th style="text-align: center;">Field Name</th>
+<th style="text-align: center;">Data Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;"><code>linear</code></td>
+<td style="text-align: center;"><code>Vector3</code></td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;"><code>angular</code></td>
+<td style="text-align: center;"><code>Vector3</code></td>
+</tr>
+</tbody>
+</table>
+<p></center></p>
+<p>Each of <em>these</em> contains 3 <em>further</em> subfields: <code>x</code>, <code>y</code> and <code>z</code>:</p>
+<p><center></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">#</th>
+<th style="text-align: center;">Field Name</th>
+<th style="text-align: center;">Data Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;"><code>x</code></td>
+<td style="text-align: center;"><code>float64</code></td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;"><code>y</code></td>
+<td style="text-align: center;"><code>float64</code></td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;"><code>z</code></td>
+<td style="text-align: center;"><code>float64</code></td>
+</tr>
+</tbody>
+</table>
+<p></center></p>
+<h3 id="velocity-commands">Velocity Commands<a class="headerlink" href="#velocity-commands" title="Permanent link">&para;</a></h3>
+<p>There are therefore <strong>six</strong> velocity <em>fields</em> that we can assign values to when sending velocity commands to a ROS robot: <strong>two</strong> velocity <em>types</em>, each with <strong>three</strong> velocity <em>components</em>: </p>
+<p><center></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Velocity Type</th>
+<th style="text-align: center;">Component 1</th>
+<th style="text-align: center;">Component 2</th>
+<th style="text-align: center;">Component 3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>linear</code></td>
+<td style="text-align: center;"><code>x</code></td>
+<td style="text-align: center;"><code>y</code></td>
+<td style="text-align: center;"><code>z</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>angular</code></td>
+<td style="text-align: center;"><code>x</code></td>
+<td style="text-align: center;"><code>y</code></td>
+<td style="text-align: center;"><code>z</code></td>
+</tr>
+</tbody>
+</table>
+<p></center></p>
+<p>These relate to a robot's <strong>six degrees of freedom</strong> (DOFs), and velocity commands are therefore formatted to give a ROS Programmer the ability to <em>ask</em> a robot to move in any one of its six DOFs. </p>
+<p><center></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Component (Axis)</th>
+<th style="text-align: center;">Linear Velocity</th>
+<th style="text-align: center;">Angular Velocity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>X</strong></td>
+<td style="text-align: center;">"Forwards/Backwards"</td>
+<td style="text-align: center;">"Roll"</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>Y</strong></td>
+<td style="text-align: center;">"Left/Right"</td>
+<td style="text-align: center;">"Pitch"</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>Z</strong></td>
+<td style="text-align: center;">"Up/Down"</td>
+<td style="text-align: center;">"Yaw"</td>
+</tr>
+</tbody>
+</table>
+<p></center></p>
+<h3 id="the-degrees-of-freedom-of-our-waffles">The Degrees of Freedom of our Waffles<a class="headerlink" href="#the-degrees-of-freedom-of-our-waffles" title="Permanent link">&para;</a></h3>
+<p>Recall (again) our robot's <em>"Principal Axes"</em> and the motion about them:</p>
+<figure>
+<p><img alt="" src="../../images/waffle/principal_axes.svg" width="500" /></p>
+</figure>
+<p>As discussed above, our Waffles only have two motors. These two motors can be controlled independently (in what is known as a <em>"differential drive"</em> configuration), which ultimately provides it with a total of <strong>two degrees of freedom</strong> overall, as highlighted below.</p>
+<figure>
+<p><img alt="" src="../../images/waffle/velocities.svg" width="800" /></p>
+</figure>
+<p>When issuing velocity commands to our Waffles therefore, only two (of the six) velocity command fields are applicable: <strong>linear</strong> velocity in the <strong>x</strong>-axis (<em>Forwards/Backwards</em>) and <strong>angular</strong> velocity about the <strong>z</strong>-axis (<em>Yaw</em>).</p>
+<p><center></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Principal Axis</th>
+<th style="text-align: center;">Linear Velocity</th>
+<th style="text-align: center;">Angular Velocity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>X</strong></td>
+<td style="text-align: center;"><strong>"Forwards/Backwards"</strong></td>
+<td style="text-align: center;"><del>"Roll"</del></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>Y</strong></td>
+<td style="text-align: center;"><del>"Left/Right"</del></td>
+<td style="text-align: center;"><del>"Pitch"</del></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>Z</strong></td>
+<td style="text-align: center;"><del>"Up/Down"</del></td>
+<td style="text-align: center;"><strong>"Yaw"</strong></td>
+</tr>
+</tbody>
+</table>
+<p></center></p>
+<p><a name="velocity_limits"></a></p>
+<div class="admonition note">
+<p class="admonition-title">Maximum Velocity Limits</p>
+<p>Keep in mind (while we're on the subject of velocity) that our TurtleBot3 Waffles have <strong>maximum velocity limits</strong>:</p>
+<p><center></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Velocity Component</th>
+<th style="text-align: center;">Upper Limit</th>
+<th style="text-align: left;">Units</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><em>Linear (in the X axis)</em></td>
+<td style="text-align: center;">0.26</td>
+<td style="text-align: left;">m/s</td>
+</tr>
+<tr>
+<td style="text-align: left;"><em>Angular (about the Z axis)</em></td>
+<td style="text-align: center;">1.82</td>
+<td style="text-align: left;">rad/s</td>
+</tr>
+</tbody>
+</table>
+<p></center></p>
+</div>
+<h4 id="ex3">Exercise 3: Controlling Velocity with the ROS 2 CLI<a class="headerlink" href="#ex3" title="Permanent link">&para;</a></h4>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Make sure that you've stopped the <code>teleop_keyboard</code> node before starting this exercise!</p>
+</div>
+<p><a name="rostopic_pub"></a>We can use the <code>ros2 topic pub</code> command to <em>publish</em> data to a topic from a terminal by using the command in the following way:</p>
+<div class="no-copy highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>ros2<span class="w"> </span>topic<span class="w"> </span>pub<span class="w"> </span><span class="o">{</span>topic_name<span class="o">}</span><span class="w"> </span><span class="o">{</span>interface_type<span class="o">}</span><span class="w"> </span><span class="o">{</span>data<span class="o">}</span>
+</code></pre></div>
+<p>As discussed above, the <code>/cmd_vel</code> topic is expecting interface messages containing <em>linear</em> and <em>angular</em> velocity data, each with <code>x</code>, <code>y</code> and <code>z</code> values associated with them. We can compose these messages in a terminal and publish them with the <code>ros2 topic pub</code> command, provided we take care to format the messages correctly to conform with the <code>geometry_msgs/msg/TwistStamped</code> data structure.</p>
+<ol>
+<li>
+<p>In <strong>TERMINAL 3</strong> enter the following, this will end up being quite a long command, so let's break it down a little:</p>
+<ol>
+<li>
+<p>Start with the desired subcommand of <code>ros2 topic</code>:</p>
+<div class="no-copy highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>ros2 topic pub
+</code></pre></div>
+</li>
+<li>
+<p>Next comes the <em>name of the topic</em> that we want to publish to: </p>
+<div class="no-copy highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>ros2 topic pub /cmd_vel
+</code></pre></div>
+</li>
+<li>
+<p>Next, we define the interface type that this topic uses. Start typing this and then enter the <span class="keys"><kbd class="key-tab">Tab</kbd></span> key where shown, and it should autocomplete for you:</p>
+<div class="no-copy highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>ros2 topic pub /cmd_vel geom[TAB]
+</code></pre></div>
+<p>Which should autocomplete the interface type for you:</p>
+<div class="no-copy highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>ros2 topic pub /cmd_vel geometry_msgs/msg/TwistStamped
+</code></pre></div>
+</li>
+<li>
+<p>Finally, provide the values to be published, which <strong>must</strong> be formatted according to the interface definition (<a href="#twist-stamped-struct">as we established earlier</a>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>ros2 topic pub /cmd_vel geometry_msgs/msg/TwistStamped \
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>&quot;{header: auto, \
+<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>  twist: { \
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a>    linear: {x: 0.0, y: 0.0, z: 0.0}, \
+<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>    angular: {x: 0.0, y: 0.0, z: 0.0} \
+<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>  } \
+<a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a>}&quot;
+</code></pre></div>
+</li>
+</ol>
+</li>
+<li>
+<p>Scroll back through the message using the <span class="keys"><kbd class="key-arrow-left">Left</kbd></span> key on your keyboard and then edit the values of the various fields, as appropriate.</p>
+<p>First, define some values that would make the robot <strong>rotate on the spot</strong>.  </p>
+</li>
+<li>
+<p>Enter <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-c">C</kbd></span> in <strong>TERMINAL 3</strong> to stop the message from being published.</p>
+<p>Notice that <strong>the robot carries on moving</strong> even when you stop the <code>ros2 topic pub</code> process...</p>
+<p>In order to make the robot <em>actually</em> stop, we need to publish a <em>new</em> message containing alternative velocity commands.</p>
+</li>
+<li>
+<p>In <strong>TERMINAL 3</strong> press the <span class="keys"><kbd class="key-arrow-up">Up</kbd></span> key on your keyboard to recall the previous command, but don't press <span class="keys"><kbd class="key-enter">Enter</kbd></span> just yet! Now press the <span class="keys"><kbd class="key-arrow-left">Left</kbd></span> key to track back through the message and change the velocity field values back to <code>0.0</code> in order to now make the robot <strong>stop</strong>.</p>
+</li>
+<li>
+<p>Once again, enter <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-c">C</kbd></span> in <strong>TERMINAL 3</strong> to stop the publisher from actively publishing new messages, and then follow the same steps as above to compose <em>another</em> new message to now make the robot <strong>move in a circle</strong>.</p>
+</li>
+<li>
+<p>Enter <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-c">C</kbd></span> to again stop the message from being published, publish a further new message to stop the robot, and then compose (and publish) a message that would make the robot <strong>drive in a straight line</strong>.</p>
+</li>
+<li>
+<p>Finally, <strong>stop</strong> the robot again!</p>
+</li>
+</ol>
+<h4 id="ex4">Exercise 4: Creating a Python Node to Make a Robot Move in a circle<a class="headerlink" href="#ex4" title="Permanent link">&para;</a></h4>
+<p>Controlling a robot from the terminal (or by using the <code>teleop_keyboard</code> node) is all well and good, but what about if we need to implement some more advanced control or <em>autonomy</em>?</p>
+<p>We'll now learn how to control the velocity of our robot <em>programmatically</em>, from a Python Node. We'll start out with a simple example to achieve a simple velocity profile (a circle), but this will provide us with the basis on which we can build more complex velocity control algorithms (which we'll look at in the following exercise).</p>
+<p>In Part 1 we built <a href="../part1/publisher/">a simple publisher node</a>, and this one will work in much the same way, but this time however, we need to publish <code>Twist</code> type messages to the <code>/cmd_vel</code> topic instead... </p>
+<ol>
+<li>
+<p>In <strong>TERMINAL 2</strong>, ensure that you're located within the <code>scripts</code> folder of your <code>part2_navigation</code> package (you could use <code>pwd</code> to check your current working directory).</p>
+<p>If you aren't located here then navigate to this directory using <code>cd</code>.</p>
+</li>
+<li>
+<p>Create a new file called <code>move_circle.py</code>:</p>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>touch<span class="w"> </span>move_circle.py
+</code></pre></div>
+... and make this file executable using the <code>chmod</code> command (<a href="../part1/#chmod">as we did in Part 1</a>).</p>
+</li>
+<li>
+<p>The task is to make the robot move in a <strong>circle</strong> with a path <strong>radius</strong> of approximately <strong>0.5 meters</strong>.</p>
+<p>Follow the instructions on the following page for building this:</p>
+<p><center><a class="md-button" href="move_circle/" target="_blank"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.11.89 2 2 2h12c1.11 0 2-.89 2-2V8zm4 18H6V4h7v5h5zm-8.46-4.35 2.09 2.09L10.35 19 7 15.65l3.35-3.35 1.28 1.26zm7.46 0L13.65 19l-1.27-1.26 2.09-2.09-2.09-2.09 1.27-1.26z"/></svg></span> Building the <code>move_circle.py</code> node</a></center></p>
+</li>
+<li>
+<p>Next (hopefully you're getting the idea by now!), declare the <code>move_circle.py</code> node as an executable in the <code>part2_navigation/CMakeLists.txt</code> file:</p>
+<div class="highlight"><span class="filename">CMakeLists.txt</span><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a># Install Python executables
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>install(PROGRAMS
+<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a>  scripts/basic_velocity_control.py
+<a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a>  scripts/stop_me.py
+<a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a>  scripts/odom_subscriber.py
+<a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a>  scripts/move_circle.py
+<a id="__codelineno-35-7" name="__codelineno-35-7" href="#__codelineno-35-7"></a>  DESTINATION lib/${PROJECT_NAME}
+<a id="__codelineno-35-8" name="__codelineno-35-8" href="#__codelineno-35-8"></a>)
+</code></pre></div>
+</li>
+<li>
+<p>Finally, head back to <strong>TERMINAL 2</strong> and use Colcon to build the new node alongside everything else in the package, using the same <strong>three-step process</strong> as before:</p>
+<ol>
+<li>
+<p>First: </p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="nb">cd</span><span class="w"> </span>~/ros2_ws/
+</code></pre></div>
+</li>
+<li>
+<p>Then:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>colcon<span class="w"> </span>build<span class="w"> </span>--packages-select<span class="w"> </span>part2_navigation<span class="w"> </span>--symlink-install
+</code></pre></div>
+</li>
+<li>
+<p>And finally, re-source again:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="nb">source</span><span class="w"> </span>~/.bashrc
+</code></pre></div>
+</li>
+</ol>
+</li>
+<li>
+<p>Run this node now, using <code>ros2 run</code> and see what happens:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>ros2<span class="w"> </span>run<span class="w"> </span>part2_navigation<span class="w"> </span>move_circle.py
+</code></pre></div>
+<p>Head back to the Gazebo simulation and watch as the robot moves around in a circle of 0.5-meter radius!</p>
+</li>
+<li>
+<p>Once you're done, enter <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-c">C</kbd></span> in <strong>TERMINAL 2</strong> to stop the <code>move_circle.py</code> node. </p>
+<div class="admonition question">
+<p class="admonition-title">Question</p>
+<p>What happens to the robot when you hit <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-c">C</kbd></span> to stop the <code>move_circle.py</code> node?</p>
+<p><strong>Answer</strong>: It carries on moving <img alt="😮" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f62e.svg" title=":open_mouth:" />!</p>
+<p>You can run another node from within your package to actually stop it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a>ros2<span class="w"> </span>run<span class="w"> </span>part2_navigation<span class="w"> </span>stop_me.py
+</code></pre></div>
+</div>
+</li>
+</ol>
+<h4 id="ex5">Exercise 5: Implementing a Shutdown Procedure<a class="headerlink" href="#ex5" title="Permanent link">&para;</a></h4>
+<p>Clearly, our work on the <code>move_circle.py</code> node isn't quite done. When we terminate our node we'd expect the robot to stop moving, but this (currently) isn't the case. </p>
+<p>You may have also noticed (with all the nodes that we have created so far) an error traceback in the terminal, every time we hit <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-c">C</kbd></span>. </p>
+<p>None of this is very good, and we'll address this now by modifying the <code>move_circle.py</code> file to incorporate a proper (and <em>safe</em>) shutdown procedure.</p>
+<ol>
+<li>
+<p>Return to the <code>move_circle.py</code> file in VS Code. </p>
+</li>
+<li>
+<p>First, we need to add an import to our Node:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rclpy.signals</span><span class="w"> </span><span class="kn">import</span> <span class="n">SignalHandlerOptions</span>
+</code></pre></div>
+<p>You'll see what this is for shortly...</p>
+</li>
+<li>
+<p>Then move on to the <code>__init__()</code> method of your <code>Circle()</code> class.</p>
+<p>Add in a boolean flag here called <code>shutdown</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="bp">self</span><span class="o">.</span><span class="n">shutdown</span> <span class="o">=</span> <span class="kc">False</span>
+</code></pre></div>
+<p>... to begin with, we want this to be set to <code>False</code>.</p>
+</li>
+<li>
+<p>Next, add a new method to your <code>Circle()</code> class, called <code>on_shutdown()</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">on_shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+<a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a>        <span class="s2">&quot;Stopping the robot...&quot;</span>
+<a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a>    <span class="p">)</span>
+<a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">my_publisher</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">TwistStamped</span><span class="p">())</span> <span class="c1"># (1)!</span>
+<a id="__codelineno-43-6" name="__codelineno-43-6" href="#__codelineno-43-6"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">shutdown</span> <span class="o">=</span> <span class="kc">True</span> <span class="c1"># (2)!</span>
+</code></pre></div>
+<ol>
+<li>All velocities within the <code>Twist(Stamped)</code> message class are set to zero by default, so we can just publish this as-is, in order to ask the robot to stop.</li>
+<li>Set the <code>shutdown</code> flag to true to indicate that a stop message has now been published.</li>
+</ol>
+</li>
+<li>
+<p>Finally, head to the <code class="highlight"><span class="n">main</span><span class="p">()</span></code> function of the script. This is where most of the changes need to be made...</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a>    <span class="n">rclpy</span><span class="o">.</span><span class="n">init</span><span class="p">(</span>
+<a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a>        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+<a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a>        <span class="n">signal_handler_options</span><span class="o">=</span><span class="n">SignalHandlerOptions</span><span class="o">.</span><span class="n">NO</span>
+<a id="__codelineno-44-5" name="__codelineno-44-5" href="#__codelineno-44-5"></a>    <span class="p">)</span> <span class="c1"># (1)!</span>
+<a id="__codelineno-44-6" name="__codelineno-44-6" href="#__codelineno-44-6"></a>    <span class="n">move_circle</span> <span class="o">=</span> <span class="n">Circle</span><span class="p">()</span>
+<a id="__codelineno-44-7" name="__codelineno-44-7" href="#__codelineno-44-7"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-44-8" name="__codelineno-44-8" href="#__codelineno-44-8"></a>        <span class="n">rclpy</span><span class="o">.</span><span class="n">spin</span><span class="p">(</span><span class="n">move_circle</span><span class="p">)</span> <span class="c1"># (2)!</span>
+<a id="__codelineno-44-9" name="__codelineno-44-9" href="#__codelineno-44-9"></a>    <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span> <span class="c1"># (3)!</span>
+<a id="__codelineno-44-10" name="__codelineno-44-10" href="#__codelineno-44-10"></a>        <span class="nb">print</span><span class="p">(</span>
+<a id="__codelineno-44-11" name="__codelineno-44-11" href="#__codelineno-44-11"></a>            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">move_circle</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span><span class="si">}</span><span class="s2"> received a shutdown request (Ctrl+C).&quot;</span>
+<a id="__codelineno-44-12" name="__codelineno-44-12" href="#__codelineno-44-12"></a>        <span class="p">)</span>
+<a id="__codelineno-44-13" name="__codelineno-44-13" href="#__codelineno-44-13"></a>    <span class="k">finally</span><span class="p">:</span> 
+<a id="__codelineno-44-14" name="__codelineno-44-14" href="#__codelineno-44-14"></a>        <span class="n">move_circle</span><span class="o">.</span><span class="n">on_shutdown</span><span class="p">()</span> <span class="c1"># (4)!</span>
+<a id="__codelineno-44-15" name="__codelineno-44-15" href="#__codelineno-44-15"></a>        <span class="k">while</span> <span class="ow">not</span> <span class="n">move_circle</span><span class="o">.</span><span class="n">shutdown</span><span class="p">:</span> <span class="c1"># (5)!</span>
+<a id="__codelineno-44-16" name="__codelineno-44-16" href="#__codelineno-44-16"></a>            <span class="k">continue</span>
+<a id="__codelineno-44-17" name="__codelineno-44-17" href="#__codelineno-44-17"></a>        <span class="n">move_circle</span><span class="o">.</span><span class="n">destroy_node</span><span class="p">()</span> <span class="c1"># (6)!</span>
+<a id="__codelineno-44-18" name="__codelineno-44-18" href="#__codelineno-44-18"></a>        <span class="n">rclpy</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+</code></pre></div>
+<ol>
+<li>
+<p>When initialising <code>rclpy</code>, we're requesting for our <code>move_circle.py</code> node to handle <em>"signals"</em> (i.e. events like a <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-c">C</kbd></span>), rather than letting <code>rclpy</code> handle these for us. Here we're using the <code>SignalHandlerOptions</code> object that we imported from <code>rclpy.signals</code> earlier.</p>
+</li>
+<li>
+<p>We set our node to spin inside a Try-Except block now, so that we can catch a <code class="highlight"><span class="ne">KeyboardInterrupt</span></code> (i.e. a <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-c">C</kbd></span>) and act accordingly when this happens.</p>
+</li>
+<li>
+<p>On detection of the <code class="highlight"><span class="ne">KeyboardInterrupt</span></code> we print a message to the terminal. After this, the code will move on to the <code class="highlight"><span class="k">finally</span></code> block...</p>
+</li>
+<li>
+<p>Call the <code>on_shutdown()</code> method that we defined earlier. This will ensure that a STOP command is published to the robot (via <code>/cmd_vel</code>).</p>
+</li>
+<li>
+<p>This <code class="highlight"><span class="k">while</span></code> loop will continue to iterate until our boolean <code>shutdown</code> flag has turned <code>True</code>, to indicate that the STOP message has been published.</p>
+</li>
+<li>
+<p>The rest is the same as before...</p>
+<p>... destroy the node and then shutdown <code>rclpy</code>.</p>
+</li>
+</ol>
+</li>
+<li>
+<p>With all this in place, run the node again now (<code>ros2 run ...</code>).</p>
+<p>Now, when you hit <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-c">C</kbd></span> you should find that the robot actually stops moving. Ah, much better!</p>
+</li>
+</ol>
+<h2 id="odometry-based-navigation">Odometry-based Navigation<a class="headerlink" href="#odometry-based-navigation" title="Permanent link">&para;</a></h2>
+<p>Over the course of the previous two exercises we've created a Python node to make our robot move using <em>open-loop control</em>. To achieve this we published velocity commands to the <code>/cmd_vel</code> topic to make the robot follow a circular motion path.</p>
+<div class="admonition question">
+<p class="admonition-title">Questions</p>
+<ol>
+<li>How do we know if our robot actually achieved the motion path that we asked for?</li>
+<li>In a <em>real-world</em> environment, what external factors might result in the robot <em>not</em> achieving its desired trajectory?</li>
+</ol>
+</div>
+<p>Earlier on we also learnt about <a href="#odometry">Robot Odometry</a>, which is used by the robot to keep track of its <strong>position</strong> and <strong>orientation</strong> (aka <strong>Pose</strong>) in the environment.  As explained earlier, this is determined by a process called <em>"dead-reckoning,"</em> which is only really an approximation, but it's a fairly good one in any case, and we can use this as a feedback signal to understand if our robot is moving in the way that we expect it to.</p>
+<p>We can therefore build on the techniques that we used in the <code>move_circle.py</code> exercise, and now also build in the ability to <em>subscribe</em> to a topic too and obtain some <em>real-time feedback</em>. To do this, we'll need to subscribe to the <code>/odom</code> topic, and use this to implement some basic <em>closed-loop control</em>.</p>
+<h4 id="ex6">Exercise 6: Making our Robot Follow a Square Motion Path<a class="headerlink" href="#ex6" title="Permanent link">&para;</a></h4>
+<ol>
+<li>
+<p>Make sure your <code>move_circle.py</code> node is no longer running in <strong>TERMINAL 2</strong>, stopping it with <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-c">C</kbd></span> if necessary.</p>
+</li>
+<li>
+<p>Make sure <strong>TERMINAL 2</strong> is still located inside your <code>part2_navigation</code> package.</p>
+</li>
+<li>
+<p>Navigate to the package <code>scripts</code> directory and use the Linux <code>touch</code> command to create a new file called <code>move_square.py</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>touch<span class="w"> </span>move_square.py
+</code></pre></div>
+</li>
+<li>
+<p>Then make this file executable using <code>chmod</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>chmod<span class="w"> </span>+x<span class="w"> </span>move_square.py
+</code></pre></div>
+</li>
+<li>
+<p>Define <code>move_square.py</code> as a package executable in your <code>CMakeLists.txt</code> file (you should know how to do this by now, but if not, refer back to either Exercise 2 or Exercise 4). </p>
+</li>
+<li>
+<p>Use the VS Code File Explorer to navigate to this <code>move_square.py</code> file and open it up, ready for editing.</p>
+</li>
+<li>
+<p>There's a template below to help you with this exercise. </p>
+<p><center><a class="md-button" href="move_square/" target="_blank"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.11.89 2 2 2h12c1.11 0 2-.89 2-2V8zm4 18H6V4h7v5h5zm-8.46-4.35 2.09 2.09L10.35 19 7 15.65l3.35-3.35 1.28 1.26zm7.46 0L13.65 19l-1.27-1.26 2.09-2.09-2.09-2.09 1.27-1.26z"/></svg></span> Access the <code>move_square.py</code> template here</a></center></p>
+<p>Copy and paste the template code into your new <code>move_square.py</code> file to get you started. </p>
+</li>
+<li>
+<p>Re-build your <code>part2_navigation</code> package, to include your new <code>move_square.py</code> node, following that <strong>three-step build process</strong> once again:</p>
+<p>Step 1:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a><span class="nb">cd</span><span class="w"> </span>~/ros2_ws/
+</code></pre></div>
+<p>Step 2:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a>colcon<span class="w"> </span>build<span class="w"> </span>--packages-select<span class="w"> </span>part2_navigation<span class="w"> </span>--symlink-install
+</code></pre></div>
+<p>Step 3:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a><span class="nb">source</span><span class="w"> </span>~/.bashrc
+</code></pre></div>
+</li>
+<li>
+<p>Run the code as it is to see what happens... <a name="blank-2"></a></p>
+<div class="admonition warning">
+<p class="admonition-title">Fill in the Blank!</p>
+<p>Something not quite working as expected? Did we <a href="../part1/publisher/#shebang">forget something very crucial</a> on <strong>the very first line</strong> of the code template?!</p>
+</div>
+</li>
+<li>
+<p>Fill in the blank as required and then adapt the code to make your robot follow a <strong>square</strong> motion path of <strong>1 x 1 meter</strong> dimensions.</p>
+<p>After following a square motion path a few times, your robot <em>should</em> return to the same location that it started from.</p>
+<div class="admonition tip">
+<p class="admonition-title">Advanced feature</p>
+<p>Adapt the node to make the robot automatically stop once it has performed two complete loops.</p>
+</div>
+</li>
+</ol>
+<h2 id="submission-on-google-classroom">Submission on Google Classroom<a class="headerlink" href="#submission-on-google-classroom" title="Permanent link">&para;</a></h2>
+<p>To complete <strong>Lab 2</strong>, you must finish the final navigation challenge below and upload your package to the assignment entry on <strong>Google Classroom</strong>.</p>
+<h3 id="final-challenge-target_reachpy">Final Challenge: <code>target_reach.py</code><a class="headerlink" href="#final-challenge-target_reachpy" title="Permanent link">&para;</a></h3>
+<p>In this final task, you will create a node that uses <strong>closed-loop control</strong>. Instead of moving for a set amount of time (open-loop), your robot must use its <strong>Odometry</strong> data to know exactly when to stop.</p>
+<ol>
+<li><strong>Create the file</strong>: In your <code>scripts</code> folder, create a file named <code>target_reach.py</code> and make it executable.</li>
+<li><strong>The Goal</strong>: Move the robot from its starting position (<span class="arithmatex">\(0,0\)</span>) to a target of <strong><span class="arithmatex">\(x = 1.0\)</span> meter</strong>.</li>
+<li><strong>The Logic</strong>: <ul>
+<li>Subscribe to the <code>/odom</code> topic.</li>
+<li>In the callback, monitor the current <code>pose.pose.position.x</code> value.</li>
+<li>Publish a linear velocity of <code>0.1 m/s</code> to <code>/cmd_vel</code> as long as <span class="arithmatex">\(x &lt; 1.0\)</span>.</li>
+<li><strong>Stop the robot</strong> immediately once the threshold is reached.</li>
+</ul>
+</li>
+<li><strong>Feedback</strong>: The node should print the current <span class="arithmatex">\(x\)</span> position to the terminal every time it receives an update.</li>
+</ol>
+<h3 id="preparation-for-upload">Preparation for Upload<a class="headerlink" href="#preparation-for-upload" title="Permanent link">&para;</a></h3>
+<p>Ensure your <code>part2_navigation</code> package is built and that all nodes, especially the new <code>target_reach.py</code>, are registered in your <code>CMakeLists.txt</code>.</p>
+<ol>
+<li><strong>Clean your workspace</strong>: Navigate to your source folder:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a><span class="nb">cd</span><span class="w"> </span>~/ros2_ws/src/
+</code></pre></div></li>
+<li><strong>Compress your package</strong>: Create a zip file of your package:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a>zip<span class="w"> </span>-r<span class="w"> </span>part2_submission.zip<span class="w"> </span>part2_navigation/
+</code></pre></div></li>
+</ol>
+<h3 id="submission-checklist">Submission Checklist<a class="headerlink" href="#submission-checklist" title="Permanent link">&para;</a></h3>
+<p>Your <code>part2_submission.zip</code> must contain the following within the <code>part2_navigation</code> folder:</p>
+<ul>
+<li><strong><code>scripts/</code></strong>: Containing the following nodes:<ol>
+<li><code>odom_subscriber.py</code></li>
+<li><code>move_circle.py</code> (with the safe shutdown procedure)</li>
+<li><code>move_square.py</code> (The 1x1m square task)</li>
+<li><code>target_reach.py</code> (<strong>The Final Challenge</strong>)</li>
+</ol>
+</li>
+<li><strong><code>CMakeLists.txt</code></strong>: Properly configured to install all the scripts above.</li>
+<li><strong><code>package.xml</code></strong>: Containing the necessary dependencies (<code>rclpy</code>, <code>nav_msgs</code>, <code>geometry_msgs</code>).</li>
+</ul>
+<p><strong>Upload your <code>part2_submission.zip</code> to the "Lab 2: Odometry &amp; Navigation" assignment on Google Classroom.</strong></p>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:quaternions">
+<p><a href="https://automaticaddison.com/how-to-convert-a-quaternion-to-a-rotation-matrix/#What_is_a_Quaternion" target="_blank">Quaternions are explained very nicely here</a>, if you'd like to learn more.&#160;<a class="footnote-backref" href="#fnref:quaternions" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../part1/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Lab 1: Getting Started with ROS 2">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Lab 1: Getting Started with ROS 2
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../part3/" class="md-footer__link md-footer__link--next" aria-label="Next: Lab 3: Beyond the Basics">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Lab 3: Beyond the Basics
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      &copy; 2026 mohamed karim bouafoura.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tracking", "navigation.expand", "navigation.top", "navigation.footer", "toc.follow", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
